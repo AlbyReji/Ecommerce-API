@@ -1,13 +1,16 @@
 from django.shortcuts import render,redirect
 
 from .serializers import (UserRegisterSerializer,
-                          CartItemSerializer)
+                          CartItemSerializer,
+                          OrderSerializer)
 
 from admin_api.serializers import (CategorySerializer,
                                     ProductSerializer)
 
 from .models import (User,
-                      CartItem)
+                    CartItem,
+                    Order,
+                    OrderItem)
 
 from admin_api.models import (Category,
                               Product)
@@ -156,10 +159,116 @@ class CartListView(generics.ListAPIView):
     def get_queryset(self):
         user = self.request.user
         return CartItem.objects.filter(user=user)
+        
 
 
 class CartUpdateView(generics.UpdateAPIView):
-    pass
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+
+    def get_queryset(self):
+
+        user = self.request.user
+        return CartItem.objects.filter(user=user)
+    
+    def update(self,request,*args,**kwargs):
+
+        instance =  self.get_object()
+        quantity = int(request.data.get('quantity'))
+        
+        if quantity <=0:
+            return Response({"error": "Quantity must be at least 1"})
+
+        instance.quantity = quantity
+        instance.total = instance.product.price * quantity
+        instance.save()
+
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+
+
+class CartDeleteView(generics.DestroyAPIView):
+    
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    queryset = CartItem.objects.all()
+    serializer_class = CartItemSerializer
+
+    def get_queryset(self):
+
+        user = self.request.user
+        return CartItem.objects.filter(user=user)
+
+    def delete(self,request,*args, **kwargs):
+        
+        instance = self.get_object()
+        instance.delete()
+        return Response({"message": "Cart item removed successfully."})
+
+
+
+class OrderView(generics.CreateAPIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    serializer_class = OrderSerializer
+
+    def create(self, request, *args, **kwargs):
+        user = request.user
+        cart_items = CartItem.objects.filter(user=user)
+
+        if not cart_items.exists():
+            return Response({"error": "Your cart is empty."})
+
+        total_amount = sum(item.total for item in cart_items)
+        order = Order.objects.create(user=user, total_amount=total_amount, status='pending')
+
+        for cart_item in cart_items:
+            OrderItem.objects.create(order=order, product=cart_item.product, quantity=cart_item.quantity)
+
+            cart_item.product.quantity -= cart_item.quantity
+            cart_item.product.save()
+
+            cart_item.delete()
+        
+        
+        context =  {'user': user,
+                    'total_amount': total_amount,
+                    'status': order.status}
+
+        subject = 'Your Order Placed Successfully'
+        from_email = settings.EMAIL_HOST_USER
+        recipient_list = [user.email]
+        html_content = render_to_string('order_user.html',context)
+        text_content = strip_tags(html_content)
+        email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+        email.attach_alternative(html_content, "text/html")
+        email.send()
+
+
+        
+
+        serializer = self.get_serializer(order)
+        return Response(serializer.data)
+
+
+
+class OrderListView(generics.ListAPIView):
+
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+    queryset= Order.objects.all()
+    serializer_class= OrderSerializer
+    # pagination_class=MyCustomPagination
+    
+
+    def get_queryset(self):
+        user = self.request.user
+        return self.queryset.filter(user=user)
 
 
 

@@ -16,6 +16,15 @@ urlpatterns = [
 
     path('addtocart/',views.AddToCartView.as_view(), name='add-to-cart'),
     path('viewcart/', views.CartListView.as_view(), name='viewcart'),
+    path('cartupdate/<int:pk>/', views.CartUpdateView.as_view(), name='viewcart'),
+    path('cartdelete/<int:pk>/', views.CartDeleteView.as_view(), name='viewcart'),
+
+    path('order/',views.OrderView.as_view(), name='add-to-cart'),
+    path('orderlist/',views.OrderListView.as_view(), name='add-to-cart'),
+
+
+
+
 
 
 ]

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Order Confirmation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f8f8;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        .order-details {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .order-details p {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>Thank you for your order!</h1>
+    <div class="order-details">
+        <p><strong>Order Details:</strong></p>
+        <p><strong>User:</strong> {{ user }}</p>
+        <p><strong>Total Amount:</strong> {{ total_amount }}</p>
+        <p><strong>Status:</strong> {{ status }}</p>
+        <!-- Add more order details here -->
+    </div>
+</body>
+</html>

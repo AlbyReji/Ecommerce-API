@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from admin_api.models import Product
-from .models import CartItem
+from .models import CartItem,Order,OrderItem
 
 User = get_user_model()
 
@@ -31,7 +31,6 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 
 
 
-
 class CartItemSerializer(serializers.ModelSerializer):
 
     user = serializers.ReadOnlyField(source='user.username') 
@@ -39,3 +38,24 @@ class CartItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = CartItem
         fields = ['id','user', 'product', 'quantity', 'total']
+
+
+class OrderItemSerializer(serializers.ModelSerializer):
+
+    product_name = serializers.CharField(source='product.product_name')
+    product_price = serializers.DecimalField(source='product.price', max_digits=10, decimal_places=2)
+    total = serializers.DecimalField(max_digits=10, decimal_places=2, read_only=True)
+
+    class Meta:
+        model = OrderItem
+        fields = ['product_name', 'product_price', 'quantity', 'total']
+
+
+class OrderSerializer(serializers.ModelSerializer):
+
+    user = serializers.ReadOnlyField(source='user.username')
+    order_items = OrderItemSerializer(source='orderitem_set', many=True, read_only=True)
+    
+    class Meta:
+        model = Order
+        fields = ['user', 'total_amount', 'status', 'created_at', 'order_items']
