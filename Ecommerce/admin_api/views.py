@@ -35,7 +35,6 @@ from django.utils.html import strip_tags
 from .pagination import NumberPagination
 
 
-#..........................CATEGORY CREATE..................................#
 
 class CategoryCreateView(generics.CreateAPIView):
     authentication_classes = [JWTAuthentication]
@@ -51,7 +50,6 @@ class CategoryCreateView(generics.CreateAPIView):
             return Response({"Category Added Successfully"})
         return Response(serializer.errors)
 
-#..........................LIST ALL CATEGORYS..................................#
 
 class CategoryListView(generics.ListAPIView):
 
@@ -62,7 +60,6 @@ class CategoryListView(generics.ListAPIView):
     pagination_class = NumberPagination
 
 
-#..........................CATEGORY RETRIEVE, UPDATE AND DELETE ..................................#
 
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -82,7 +79,6 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "Category not found."})  
 
 
-#..........................PRODUCT CREATE..................................#
 
 class ProductCreateView(generics.CreateAPIView):
     authentication_classes = [JWTAuthentication]
@@ -99,7 +95,6 @@ class ProductCreateView(generics.CreateAPIView):
         return Response(serializer.errors)
 
 
-#..........................LIST ALL PRODUCTS..................................#
 
 class ProductListView(generics.ListAPIView):
 
@@ -110,7 +105,6 @@ class ProductListView(generics.ListAPIView):
     pagination_class = NumberPagination
 
 
-#..........................PRODUCT RETRIEVE, UPDATE AND DELETE ..................................#
 
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -131,7 +125,6 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
 
 
 
-#..........................LIST OF USERS..................................#
 
 
 class UserListView(generics.ListAPIView):
@@ -144,7 +137,6 @@ class UserListView(generics.ListAPIView):
     
 
 
-#..........................USER DELETE ..................................#
 
 
 class UserDeleteView(generics.DestroyAPIView):
