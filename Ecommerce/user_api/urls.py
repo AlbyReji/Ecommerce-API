@@ -10,6 +10,10 @@ urlpatterns = [
     path('login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 
+    path('passwordreset/request/',views.PasswordResetRequestView.as_view(), name='password_reset_request'),
+    path('passwordreset/verify/',views.PasswordResetVerifyView.as_view(), name='password-reset-verify'),
+    path('passwordreset/reset/',views.PasswordResetView.as_view(), name='password-reset'),
+
     path('userproductlist/',views.UserProductlistview.as_view(),name = "userproductlist"),
     path('productdetail/<int:pk>/',views.UserProductView.as_view(),name = "productdetail"),
 

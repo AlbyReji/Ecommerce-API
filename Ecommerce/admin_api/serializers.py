@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import Category,Product
-from user_api.models import User
+from user_api.models import User,Order
 
 
 
@@ -24,3 +24,10 @@ class UserListSerializer(serializers.ModelSerializer):
         fields = ['id', 'username', 'email', 'first_name','last_name']
 
     
+class OrderUpdateSerializer(serializers.ModelSerializer):
+
+    user = serializers.ReadOnlyField(source='user.username')
+    
+    class Meta:
+        model = Order
+        fields = ['id' ,'user','status']

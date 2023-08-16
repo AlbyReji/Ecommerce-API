@@ -13,5 +13,14 @@ urlpatterns = [
 
     path('userlist/',views.UserListView.as_view(),name = "userlist"),
     path('userdelete/<int:pk>/',views.UserDeleteView.as_view(),name = "userdelete"),
+
+    path('admin/order/list/',views.OrderListView.as_view(),name = "orderlist"),
+    path('admin/order/list/<int:pk>/',views.OrderDetailView.as_view(),name = "order"),
+    path('admin/order/update/<int:pk>/',views.OrderUpdateView.as_view(),name = "orderupdate"),
+
+    path('admin/promotion-mail/',views.SendPromotionEmailView.as_view(),name = "orderlist"),
+
+
+
    
 ]

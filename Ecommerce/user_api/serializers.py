@@ -6,7 +6,9 @@ from .models import CartItem,Order,OrderItem
 User = get_user_model()
 
 class UserRegisterSerializer(serializers.ModelSerializer):
-    password2 = serializers.CharField(style={'input_type': 'password'}, write_only=True)
+
+    password = serializers.CharField(write_only=True)
+    password2 = serializers.CharField(write_only=True)
 
     class Meta:
         model = User
@@ -58,4 +60,26 @@ class OrderSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Order
-        fields = ['user', 'total_amount', 'status', 'created_at', 'order_items']
+        fields = ['id','user', 'total_amount', 'status', 'created_at', 'order_items']
+
+
+class PasswordResetRequestSerializer(serializers.Serializer):
+
+    email = serializers.EmailField()
+    
+    class Meta:
+        fields = ['email']
+
+class PasswordResetSerializer(serializers.Serializer):
+
+    password = serializers.CharField(write_only=True)
+    confirm_password = serializers.CharField(write_only=True)
+
+    def validate(self, data):
+        if data['password'] != data['confirm_password']:
+            raise serializers.ValidationError("Passwords do not match")
+        return data
+
+    class Meta:
+
+        fields = ['password','confirm_password']

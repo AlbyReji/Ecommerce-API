@@ -2,7 +2,9 @@ from django.shortcuts import render,redirect
 
 from .serializers import (UserRegisterSerializer,
                           CartItemSerializer,
-                          OrderSerializer)
+                          OrderSerializer,
+                          PasswordResetRequestSerializer,
+                          PasswordResetSerializer)
 
 from admin_api.serializers import (CategorySerializer,
                                     ProductSerializer)
@@ -33,13 +35,18 @@ from Ecommerce.settings import EMAIL_HOST_USER
 from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags 
+from rest_framework_simplejwt.tokens import AccessToken
+from django.contrib.auth.tokens import default_token_generator
+from django.urls import reverse
+
+
+
 
 from django_filters.rest_framework import DjangoFilterBackend
 
 
 
-
-#..........................USER REGISTRATION AND MAIL SENDING..................................#
+#__User Registration and mail Sending__#
 
 class RegisterView(APIView):
 
@@ -66,6 +73,80 @@ class RegisterView(APIView):
             data = serializer.errors
         return Response(data)
 
+
+class PasswordResetRequestView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        serializer = PasswordResetRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        email = serializer.validated_data['email']
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({'error': 'User with this email address does not exist'})
+        
+        access_token = AccessToken.for_user(user)
+        reset_url = reverse('password-reset-verify') + f'?token={access_token}'
+        
+        subject = 'Password Reset Request'
+        from_email = settings.EMAIL_HOST_USER
+        recipient_list = [email]
+        context = {'reset_url': reset_url}  
+        html_content = render_to_string('password_reset.html', context)
+        text_content = strip_tags(html_content)
+        
+        try:
+            email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+            return Response({'message': 'Password reset email sent successfully'})
+        except Exception as e:
+            return Response({'error': 'An error occurred while sending the email'})
+
+
+
+class PasswordResetVerifyView(APIView):
+
+    def get(self, request, *args, **kwargs):
+        token = request.query_params.get('token')
+        print(token)
+        if token is None:
+            return Response({'error': 'Token not provided'})
+        
+        try:
+            access_token = AccessToken(token)
+            user_id = access_token.payload.get('user_id')
+            user = User.objects.get(pk=user_id)
+            return Response({'message': 'Token is valid'})
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid token'})
+
+class PasswordResetView(APIView):
+
+    def post(self, request, *args, **kwargs):
+        serializer = PasswordResetSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        
+        token = request.query_params.get('token')
+        if token is None:
+            return Response({'error': 'Token not provided'})
+        
+        try:
+            access_token = AccessToken(token)
+            user_id = access_token.payload.get('user_id')
+            user = User.objects.get(pk=user_id)
+            
+            password = serializer.validated_data['password']
+            user.set_password(password)
+            user.save()
+            
+            return Response({'message': 'Password reset successfully'})
+        except User.DoesNotExist:
+            return Response({'error': 'Invalid token'})
+
+
         
 #..........................LIST OF PRODUCTS..................................#
 
@@ -79,7 +160,7 @@ class UserProductlistview(generics.ListAPIView):
     filterset_fields = ['product_name','price','quantity','categories']
 
 
-#__USERS view specific Products__#
+#__Users can view specific Products__#
 
 
 class UserProductView(generics.RetrieveAPIView):
@@ -247,6 +328,15 @@ class OrderView(generics.CreateAPIView):
         text_content = strip_tags(html_content)
         email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
         email.attach_alternative(html_content, "text/html")
+        email.send()
+
+        subject="New Order Received"
+        from_email = settings.EMAIL_HOST_USER
+        recipient_list=['admin@gmail.com']
+        html_content=render_to_string('order_admin.html',context)
+        text_content = strip_tags(html_content)
+        email=EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+        email.attach_alternative(html_content,"text/html")
         email.send()
 
 
