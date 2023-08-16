@@ -39,6 +39,8 @@ from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
 
 from django_filters.rest_framework import DjangoFilterBackend
+from .pagination import NumberPagination
+
 
 
 
@@ -343,7 +345,8 @@ class OrderListView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     queryset= Order.objects.all()
     serializer_class= OrderSerializer
-    pagination_class=MyCustomPagination
+
+    pagination_class=NumberPagination
     
 
     def get_queryset(self):
