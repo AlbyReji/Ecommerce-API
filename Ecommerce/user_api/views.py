@@ -18,7 +18,6 @@ from admin_api.models import (Category,
                               Product)
 
 
-
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.response import Response
@@ -38,9 +37,6 @@ from django.utils.html import strip_tags
 from rest_framework_simplejwt.tokens import AccessToken
 from django.contrib.auth.tokens import default_token_generator
 from django.urls import reverse
-
-
-
 
 from django_filters.rest_framework import DjangoFilterBackend
 
@@ -148,7 +144,6 @@ class PasswordResetView(APIView):
 
 
         
-#..........................LIST OF PRODUCTS..................................#
 
 class UserProductlistview(generics.ListAPIView):
 
@@ -161,7 +156,6 @@ class UserProductlistview(generics.ListAPIView):
 
 
 #__Users can view specific Products__#
-
 
 class UserProductView(generics.RetrieveAPIView):
 
@@ -180,7 +174,6 @@ class UserProductView(generics.RetrieveAPIView):
 
 
 
-#..........................ADD TO CART..................................#
 
 
 
@@ -339,9 +332,6 @@ class OrderView(generics.CreateAPIView):
         email.attach_alternative(html_content,"text/html")
         email.send()
 
-
-        
-
         serializer = self.get_serializer(order)
         return Response(serializer.data)
 
@@ -353,7 +343,7 @@ class OrderListView(generics.ListAPIView):
     authentication_classes = [JWTAuthentication]
     queryset= Order.objects.all()
     serializer_class= OrderSerializer
-    # pagination_class=MyCustomPagination
+    pagination_class=MyCustomPagination
     
 
     def get_queryset(self):
