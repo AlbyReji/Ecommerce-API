@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from admin_api.models import Product
-from .models import CartItem,Order,OrderItem
+from .models import CartItem,Order,OrderItem,Address
 
 User = get_user_model()
 
@@ -30,6 +30,14 @@ class UserRegisterSerializer(serializers.ModelSerializer):
         reg.save()
         return reg
 
+
+class AddressSerializer(serializers.ModelSerializer):
+
+    user = serializers.ReadOnlyField(source='user.username') 
+
+    class Meta:
+        model = Address
+        fields = ['id','user','house_name', 'city', 'state', 'postal_code','country']
 
 
 

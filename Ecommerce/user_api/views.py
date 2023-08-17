@@ -1,15 +1,19 @@
 from django.shortcuts import render,redirect
 
 from .serializers import (UserRegisterSerializer,
-                          CartItemSerializer,
-                          OrderSerializer,
                           PasswordResetRequestSerializer,
-                          PasswordResetSerializer)
+                          PasswordResetSerializer,
+                          AddressSerializer,
+                          
+
+                          CartItemSerializer,
+                          OrderSerializer,)
 
 from admin_api.serializers import (CategorySerializer,
                                     ProductSerializer)
 
 from .models import (User,
+                    Address,
                     CartItem,
                     Order,
                     OrderItem)
@@ -143,6 +147,21 @@ class PasswordResetView(APIView):
             return Response({'message': 'Password reset successfully'})
         except User.DoesNotExist:
             return Response({'error': 'Invalid token'})
+
+
+class AddressCreateview(generics.CreateAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response({"Address is added"})
+
 
 
         
