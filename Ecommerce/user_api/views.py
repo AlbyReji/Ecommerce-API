@@ -149,18 +149,45 @@ class PasswordResetView(APIView):
             return Response({'error': 'Invalid token'})
 
 
-class AddressCreateview(generics.CreateAPIView):
+class AddressCreateview(generics.ListCreateAPIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
     queryset = Address.objects.all()
     serializer_class = AddressSerializer
 
+    def get_queryset(self):
+        user = self.request.user
+        return Address.objects.filter(user=user)
+    
+
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
         return Response({"Address is added"})
+
+
+class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Address.objects.all()
+    serializer_class = AddressSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return Address.objects.filter(user=user)
+
+        
+    def delete(self, request, *args, **kwargs):
+
+        try:
+            instance = self.get_object()
+            self.perform_destroy(instance)
+            return Response({"message": "Address deleted successfully."})
+        except NotFound:
+            return Response({"message": "Address not found."}) 
 
 
 
@@ -192,9 +219,6 @@ class UserProductView(generics.RetrieveAPIView):
             return Response(serializer.data)
         except NotFound:
             return Response({"message": "Product not found."})
-
-
-
 
 
 

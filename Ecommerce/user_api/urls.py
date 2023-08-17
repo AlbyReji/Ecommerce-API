@@ -15,7 +15,7 @@ urlpatterns = [
     path('passwordreset/reset/',views.PasswordResetView.as_view(), name='password-reset'),
 
     path('user/adress/create/',views.AddressCreateview.as_view(), name='address create'),
-
+    path('user/adress/create/<int:pk>/',views.AddressDetailView.as_view(), name='address detail'),
 
     path('userproductlist/',views.UserProductlistview.as_view(),name = "userproductlist"),
     path('productdetail/<int:pk>/',views.UserProductView.as_view(),name = "productdetail"),
