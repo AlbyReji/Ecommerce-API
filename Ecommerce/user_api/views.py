@@ -4,8 +4,7 @@ from .serializers import (UserRegisterSerializer,
                           PasswordResetRequestSerializer,
                           PasswordResetSerializer,
                           AddressSerializer,
-                          
-
+                          ProfileSerializer,
                           CartItemSerializer,
                           OrderSerializer,)
 
@@ -14,6 +13,7 @@ from admin_api.serializers import (CategorySerializer,
 
 from .models import (User,
                     Address,
+                    UserProfile,
                     CartItem,
                     Order,
                     OrderItem)
@@ -190,7 +190,23 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "Address not found."}) 
 
 
+class ProfileCreateview(generics.ListCreateAPIView):
 
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = UserProfile.objects.all()
+    serializer_class = ProfileSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return UserProfile.objects.filter(user=user)
+    
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        serializer.save(user=request.user)
+        return Response({"Profile is created"})
         
 
 class UserProductlistview(generics.ListAPIView):

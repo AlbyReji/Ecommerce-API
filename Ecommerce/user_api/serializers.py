@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from admin_api.models import Product
-from .models import CartItem,Order,OrderItem,Address
+from .models import CartItem,Order,OrderItem,Address,UserProfile
 
 User = get_user_model()
 
@@ -38,6 +38,25 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = ['id','user','house_name', 'city', 'state', 'postal_code','country']
+
+        
+class ProfileSerializer(serializers.ModelSerializer):
+
+    user = serializers.SerializerMethodField()
+    class Meta:
+        model = UserProfile
+        fields = ['id', 'user', 'profile_picture', 'mobile_number', 'created_at']
+
+    def get_user(self, obj):
+        user = obj.user
+        return {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'first_name': user.first_name,
+            'last_name': user.last_name
+        }
+        return None
 
 
 
