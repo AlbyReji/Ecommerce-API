@@ -34,7 +34,7 @@ from django.utils.html import strip_tags
 
 from .pagination import NumberPagination
 
-
+#__Admin: API for create categorys__#
 
 class CategoryCreateView(generics.CreateAPIView):
     authentication_classes = [JWTAuthentication]
@@ -50,6 +50,7 @@ class CategoryCreateView(generics.CreateAPIView):
             return Response({"Category Added Successfully"})
         return Response(serializer.errors)
 
+#__Admin: API for view the list of categorys__#
 
 class CategoryListView(generics.ListAPIView):
 
@@ -60,7 +61,7 @@ class CategoryListView(generics.ListAPIView):
     pagination_class = NumberPagination
 
 
-
+#__Admin: API for Retrieve,update and delete categorys__#
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
 
@@ -78,7 +79,7 @@ class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
         except NotFound:
             return Response({"message": "Category not found."})  
 
-
+#__Admin: API for create products__#
 
 class ProductCreateView(generics.CreateAPIView):
     authentication_classes = [JWTAuthentication]
@@ -95,6 +96,7 @@ class ProductCreateView(generics.CreateAPIView):
         return Response(serializer.errors)
 
 
+#__Admin: API for view the list of  products__#
 
 class ProductListView(generics.ListAPIView):
 
@@ -105,7 +107,7 @@ class ProductListView(generics.ListAPIView):
     pagination_class = NumberPagination
 
 
-
+#__Admin: API for Retrieve,update and delete categorys__#
 
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
 
@@ -124,8 +126,7 @@ class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "Product not found."})  
 
 
-
-
+#__Admin: API for view the list of users__#
 
 class UserListView(generics.ListAPIView):
 
@@ -137,7 +138,7 @@ class UserListView(generics.ListAPIView):
     
 
 
-
+#__Admin: API for delete users__#
 
 class UserDeleteView(generics.DestroyAPIView):
 
@@ -156,6 +157,7 @@ class UserDeleteView(generics.DestroyAPIView):
             return Response({"message": "User not found."})  
 
 
+#__Admin: API for view orders__#
 
 class OrderListView(generics.ListAPIView):
 
@@ -166,6 +168,7 @@ class OrderListView(generics.ListAPIView):
     pagination_class = NumberPagination
 
 
+#__Admin: API for view a specific order#
 
 class OrderDetailView(generics.RetrieveAPIView):
 
@@ -194,7 +197,7 @@ class OrderDetailView(generics.RetrieveAPIView):
 
         return Response(data)
 
-
+#__Admin: API for update the order status__#
 
 class OrderUpdateView(generics.UpdateAPIView):
 
@@ -233,6 +236,7 @@ class OrderUpdateView(generics.UpdateAPIView):
         return Response({"message":"Order status is updated"})
 
 
+#__Admin: API for send promotion mails__#
 
 class SendPromotionEmailView(APIView):
 

@@ -6,7 +6,8 @@ from .serializers import (UserRegisterSerializer,
                           AddressSerializer,
                           ProfileSerializer,
                           CartItemSerializer,
-                          OrderSerializer,)
+                          OrderSerializer,
+                          OrderlistSerializer)
 
 from admin_api.serializers import (CategorySerializer,
                                     ProductSerializer)
@@ -48,7 +49,7 @@ from .pagination import NumberPagination
 
 
 
-#__User Registration and mail Sending__#
+#__User: API for user Registration and mail Sending__#
 
 class RegisterView(APIView):
 
@@ -75,6 +76,7 @@ class RegisterView(APIView):
             data = serializer.errors
         return Response(data)
 
+#__User: API for Password reset and mail sending__#
 
 class PasswordResetRequestView(APIView):
 
@@ -108,6 +110,7 @@ class PasswordResetRequestView(APIView):
             return Response({'error': 'An error occurred while sending the email'})
 
 
+#__User: API for Verifying the token__#
 
 class PasswordResetVerifyView(APIView):
 
@@ -124,6 +127,9 @@ class PasswordResetVerifyView(APIView):
             return Response({'message': 'Token is valid'})
         except User.DoesNotExist:
             return Response({'error': 'Invalid token'})
+
+
+#__User: API for Password reset__#
 
 class PasswordResetView(APIView):
 
@@ -149,6 +155,8 @@ class PasswordResetView(APIView):
             return Response({'error': 'Invalid token'})
 
 
+#__Users: Api for address__#
+
 class AddressCreateview(generics.ListCreateAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -167,6 +175,7 @@ class AddressCreateview(generics.ListCreateAPIView):
         serializer.save(user=request.user)
         return Response({"Address is added"})
 
+#__Users: API for Retrieve,update and delete Address__#
 
 class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
 
@@ -190,6 +199,8 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "Address not found."}) 
 
 
+#__Users:API for create profile __#
+
 class ProfileCreateview(generics.ListCreateAPIView):
 
     authentication_classes = [JWTAuthentication]
@@ -201,13 +212,26 @@ class ProfileCreateview(generics.ListCreateAPIView):
         user = self.request.user
         return UserProfile.objects.filter(user=user)
     
-
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         serializer.save(user=request.user)
         return Response({"Profile is created"})
+
         
+#__Users:API for view the list of categories__#
+
+class CatgorylistView(generics.ListAPIView):
+
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = NumberPagination
+
+
+        
+#__Users:API for view the list of products__#
 
 class UserProductlistview(generics.ListAPIView):
 
@@ -217,9 +241,11 @@ class UserProductlistview(generics.ListAPIView):
     serializer_class = ProductSerializer
     filter_backends = [DjangoFilterBackend]
     filterset_fields = ['product_name','price','quantity','categories']
+    pagination_class = NumberPagination
 
 
-#__Users can view specific Products__#
+
+#__Users:API for view specific Products__#
 
 class UserProductView(generics.RetrieveAPIView):
 
@@ -237,6 +263,7 @@ class UserProductView(generics.RetrieveAPIView):
             return Response({"message": "Product not found."})
 
 
+#__Users: API for add different products to the cart__#
 
 class AddToCartView(generics.CreateAPIView):
 
@@ -245,13 +272,14 @@ class AddToCartView(generics.CreateAPIView):
     serializer_class = CartItemSerializer
 
 
+
     def post(self, request, *args, **kwargs):
-        product = int(request.data.get('product'))
+        product_id = int(request.data.get('product'))
         quantity = int(request.data.get('quantity'))
         user = request.user
 
         try:
-            product = Product.objects.get(id=product)
+            product = Product.objects.get(id=product_id)
         except Product.DoesNotExist:
             return Response({'error': 'Product not found.'})
 
@@ -262,15 +290,16 @@ class AddToCartView(generics.CreateAPIView):
 
         if quantity == 0:
             return Response({"error": "Quantity must be at least 1"})
-        
+
         if not item_created:
             cart_item.quantity += quantity
         else:
             cart_item.quantity = int(quantity)
-        
+
         if product.quantity < cart_item.quantity:
             return Response({"error": f" {product.product_name} : Quantity exceeds available stock"})
 
+        cart_item.product_price = product.price 
         cart_item.total = product.price * cart_item.quantity
         cart_item.save()
 
@@ -279,16 +308,18 @@ class AddToCartView(generics.CreateAPIView):
         context = {
             "cart_items": serializer.data,
             "cart_total": cart_total
-
         }
         return Response(context)
 
+#__Users:API for view  products in the cart__#
 
 class CartListView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     serializer_class = CartItemSerializer
+    pagination_class = NumberPagination
+
 
 
     def get_queryset(self):
@@ -296,6 +327,7 @@ class CartListView(generics.ListAPIView):
         return CartItem.objects.filter(user=user)
         
 
+#__Users: API for upadte products in the cart__#
 
 class CartUpdateView(generics.UpdateAPIView):
 
@@ -325,6 +357,7 @@ class CartUpdateView(generics.UpdateAPIView):
         return Response(serializer.data)
 
 
+#__Users: API for delete products in the cart__#
 
 class CartDeleteView(generics.DestroyAPIView):
     
@@ -345,6 +378,7 @@ class CartDeleteView(generics.DestroyAPIView):
         return Response({"message": "Cart item removed successfully."})
 
 
+#__Users:API for place order and send mail__#
 
 class OrderView(generics.CreateAPIView):
 
@@ -360,10 +394,27 @@ class OrderView(generics.CreateAPIView):
             return Response({"error": "Your cart is empty."})
 
         total_amount = sum(item.total for item in cart_items)
-        order = Order.objects.create(user=user, total_amount=total_amount, status='pending')
+
+        address_id = request.data.get('address_id') 
+
+        print(f"DEBUG: address_id = {address_id}, user = {user}")
+
+        try:
+            address = Address.objects.get(id=address_id, user=user)
+        except Address.DoesNotExist:
+            return Response({"error": "Address not found or does not belong to the user."})
+
+        order = Order.objects.create(user=user,
+                                     total_amount=total_amount,
+                                     status='pending', 
+                                     address=address)
 
         for cart_item in cart_items:
-            OrderItem.objects.create(order=order, product=cart_item.product, quantity=cart_item.quantity)
+            product_price = cart_item.product.price
+            OrderItem.objects.create(order=order,
+                                     product=cart_item.product,
+                                     quantity=cart_item.quantity,
+                                     product_price=product_price)
 
             cart_item.product.quantity -= cart_item.quantity
             cart_item.product.save()
@@ -397,14 +448,14 @@ class OrderView(generics.CreateAPIView):
         return Response(serializer.data)
 
 
+#__Users:API for view list of orders__#
 
 class OrderListView(generics.ListAPIView):
 
     permission_classes = [IsAuthenticated]
     authentication_classes = [JWTAuthentication]
     queryset= Order.objects.all()
-    serializer_class= OrderSerializer
-
+    serializer_class= OrderlistSerializer
     pagination_class=NumberPagination
     
 
@@ -412,6 +463,38 @@ class OrderListView(generics.ListAPIView):
         user = self.request.user
         return self.queryset.filter(user=user)
 
+#__non-registered user __#
+
+#__non-registered user can view list of categorys__#
+
+class NonUserCatgorylistView(generics.ListAPIView):
+
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    pagination_class = NumberPagination
+
+#__non-registered user can view list of products#
+
+class NonUserProductlistview(generics.ListAPIView):
+
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['product_name','price','quantity','categories']
+    pagination_class = NumberPagination
 
 
+#__non-registered user can view details of specifiv product__#
 
+class NonUserProductView(generics.RetrieveAPIView):
+
+    queryset = Product.objects.all()
+    serializer_class = ProductSerializer
+
+    def retrieve(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance)
+            return Response(serializer.data)
+        except NotFound:
+            return Response({"message": "Product not found."})
