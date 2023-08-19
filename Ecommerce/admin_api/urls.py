@@ -11,8 +11,8 @@ urlpatterns = [
     path('admin/product/list/',views.ProductListView.as_view(),name = "productlist"),
     path('admin/product/detail/<int:pk>/',views.ProductDetailView.as_view(),name = "productdetail"),
 
-    path('admin/user/list/',views.UserListView.as_view(),name = "userlist"),
-    path('admin/user/delete/<int:pk>/',views.UserDeleteView.as_view(),name = "userdelete"),
+    path('admin/users/list/',views.UserListView.as_view(),name = "userlist"),
+    path('admin/users/delete/<int:pk>/',views.UserDeleteView.as_view(),name = "userdelete"),
 
     path('admin/order/list/',views.OrderListView.as_view(),name = "orderlist"),
     path('admin/order/list/<int:pk>/',views.OrderDetailView.as_view(),name = "order"),

@@ -21,10 +21,9 @@ urlpatterns = [
 
     path('user/category/list/',views.CatgorylistView.as_view(),name = "category_list"),
     path('user/product/list/',views.UserProductlistview.as_view(),name = "user_product_list"),
-    path('user/product/detail/<int:pk>/',views.UserProductView.as_view(),name = "product_detail"),
+    path('user/product/retrieve/<int:pk>/',views.UserProductView.as_view(),name = "product_detail"),
 
-
-    path('user/addtocart/',views.AddToCartView.as_view(), name='add_to_cart'),
+    path('user/addto/cart/',views.AddToCartView.as_view(), name='add_to_cart'),
     path('user/view/cart/', views.CartListView.as_view(), name='view_cart'),
     path('user/cart/update/<int:pk>/', views.CartUpdateView.as_view(), name='cart_update'),
     path('user/cart/delete/<int:pk>/', views.CartDeleteView.as_view(), name='cart_delete'),
@@ -34,6 +33,6 @@ urlpatterns = [
 
     path('nonuser/category/list/',views.NonUserCatgorylistView.as_view(),name = "Nonuser_category_list"),
     path('nonuser/product/list/',views.NonUserProductlistview.as_view(),name = "Nonuser_product_list"),
-    path('nonuser/product/detail/<int:pk>/',views.NonUserProductView.as_view(),name = "Nonuser_product_detail"),
+    path('nonuser/product/retrieve/<int:pk>/',views.NonUserProductView.as_view(),name = "Nonuser_product_detail"),
 
 ]

@@ -66,12 +66,16 @@ class RegisterView(APIView):
             html_content = render_to_string('user_register.html', {'username': account.username})
             text_content = strip_tags(html_content)
 
-            email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
-            email.attach_alternative(html_content, "text/html")
-            email.send()
+            try:
+                email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+                email.attach_alternative(html_content, "text/html")
+                email.send()
 
-            data['response'] = 'message:User created'
-            refresh = RefreshToken.for_user(account)
+                data['response'] = 'message:User created'
+                refresh = RefreshToken.for_user(account)
+            except Exception as e:
+                data['error'] = 'An error occurred while sending the registration email.'
+                return Response(data)   
         else:
             data = serializer.errors
         return Response(data)
@@ -92,7 +96,7 @@ class PasswordResetRequestView(APIView):
             return Response({'error': 'User with this email address does not exist'})
         
         access_token = AccessToken.for_user(user)
-        reset_url = reverse('password-reset-verify') + f'?token={access_token}'
+        reset_url = reverse('password_reset_verify') + f'?token={access_token}'
         
         subject = 'Password Reset Request'
         from_email = settings.EMAIL_HOST_USER
@@ -199,7 +203,7 @@ class AddressDetailView(generics.RetrieveUpdateDestroyAPIView):
             return Response({"message": "Address not found."}) 
 
 
-#__Users:API for create profile __#
+#__Users:API for create profile and view profile__#
 
 class ProfileCreateview(generics.ListCreateAPIView):
 
@@ -426,23 +430,29 @@ class OrderView(generics.CreateAPIView):
                     'total_amount': total_amount,
                     'status': order.status}
 
-        subject = 'Your Order Placed Successfully'
-        from_email = settings.EMAIL_HOST_USER
-        recipient_list = [user.email]
-        html_content = render_to_string('order_user.html',context)
-        text_content = strip_tags(html_content)
-        email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
-        email.attach_alternative(html_content, "text/html")
-        email.send()
-
-        subject="New Order Received"
-        from_email = settings.EMAIL_HOST_USER
-        recipient_list=['admin@gmail.com']
-        html_content=render_to_string('order_admin.html',context)
-        text_content = strip_tags(html_content)
-        email=EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
-        email.attach_alternative(html_content,"text/html")
-        email.send()
+        try:
+            subject = 'Your Order Placed Successfully'
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list = [user.email]
+            html_content = render_to_string('order_user.html',context)
+            text_content = strip_tags(html_content)
+            email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+        except Exception as user_email_error:
+            return Response({"error": f"Failed to send user email: {user_email_error}"})
+        
+        try:
+            subject="New Order Received"
+            from_email = settings.EMAIL_HOST_USER
+            recipient_list=['admin@gmail.com']
+            html_content=render_to_string('order_admin.html',context)
+            text_content = strip_tags(html_content)
+            email=EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+            email.attach_alternative(html_content,"text/html")
+            email.send()
+        except Exception as admin_email_error:
+            return Response({"error": f"Failed to send admin email: {admin_email_error}"})
 
         serializer = self.get_serializer(order)
         return Response(serializer.data)

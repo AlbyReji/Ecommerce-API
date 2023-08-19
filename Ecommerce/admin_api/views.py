@@ -24,6 +24,8 @@ from rest_framework.views import APIView
 from rest_framework import generics,serializers
 from rest_framework.generics import  RetrieveAPIView
 from rest_framework.permissions import IsAdminUser
+from rest_framework.exceptions import APIException
+
 
 from django.core.mail import send_mail
 from django.conf import settings
@@ -132,7 +134,7 @@ class UserListView(generics.ListAPIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAdminUser]
-    queryset = User.objects.all()
+    queryset = User.objects.filter(is_staff=False)
     serializer_class = UserListSerializer
     pagination_class = NumberPagination
     
@@ -146,6 +148,7 @@ class UserDeleteView(generics.DestroyAPIView):
     permission_classes = [IsAdminUser]
     queryset = User.objects.all()
     serializer_class = UserListSerializer
+    
 
 
     def delete(self, request, *args, **kwargs):
@@ -197,6 +200,7 @@ class OrderDetailView(generics.RetrieveAPIView):
 
         return Response(data)
 
+
 #__Admin: API for update the order status__#
 
 class OrderUpdateView(generics.UpdateAPIView):
@@ -229,9 +233,12 @@ class OrderUpdateView(generics.UpdateAPIView):
         html_content = render_to_string('order_confirm.html', context)
         text_content = strip_tags(html_content)
 
-        email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
-        email.attach_alternative(html_content, "text/html")
-        email.send()
+        try:
+            email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+            email.attach_alternative(html_content, "text/html")
+            email.send()
+        except Exception as e:
+            raise APIException(detail=f"An error occurred while sending the email: {str(e)}")
 
         return Response({"message":"Order status is updated"})
 
@@ -254,9 +261,14 @@ class SendPromotionEmailView(APIView):
             html_content = render_to_string('promotion_mail.html', {'user': user})
             text_content = strip_tags(html_content)
 
-            email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
-            email.attach_alternative(html_content, "text/html")
-            email.send()
+            try:
+                email = EmailMultiAlternatives(subject, text_content, from_email, recipient_list)
+                email.attach_alternative(html_content, "text/html")
+                email.send()
+            except Exception as e:
+
+                raise APIException(detail=f"An error occurred while sending the email: {str(e)}")
+
 
         return Response({"message": "Promotion emails sent successfully to all users."})
 

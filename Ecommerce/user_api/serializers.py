@@ -63,10 +63,11 @@ class ProfileSerializer(serializers.ModelSerializer):
 class CartItemSerializer(serializers.ModelSerializer):
 
     user = serializers.ReadOnlyField(source='user.username') 
+    product_name = serializers.CharField(source='product.product_name', read_only=True)
     
     class Meta:
         model = CartItem
-        fields = ['id','user', 'product', 'quantity', 'total']
+        fields = ['id','user', 'product_name', 'quantity', 'total']
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
