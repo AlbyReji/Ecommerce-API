@@ -19,7 +19,7 @@ urlpatterns = [
 
     path('user/profile/create/',views.ProfileCreateview.as_view(), name='Profile_create'),
 
-    path('user/category/list/',views.CatgorylistView.as_view(),name = "category_list"),
+    path('user/category/list/',views.CategorylistView.as_view(),name = "category_list"),
     path('user/product/list/',views.UserProductlistview.as_view(),name = "user_product_list"),
     path('user/product/retrieve/<int:pk>/',views.UserProductView.as_view(),name = "product_detail"),
 

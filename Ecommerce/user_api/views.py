@@ -225,7 +225,7 @@ class ProfileCreateview(generics.ListCreateAPIView):
         
 #__Users:API for view the list of categories__#
 
-class CatgorylistView(generics.ListAPIView):
+class CategorylistView(generics.ListAPIView):
 
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
